@@ -389,3 +389,56 @@ textarea.form-control {
 .config-item-name {
   font-weight: 500;
 }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .sidebar-header {
+    margin-bottom: 16px;
+  }
+  
+  .nav-menu {
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+  }
+  
+  .nav-link {
+    white-space: nowrap;
+    padding: 8px 16px;
+  }
+  
+  .topbar {
+    padding: 16px;
+  }
+  
+  .view-container {
+    padding: 16px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .item-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .item-actions .btn {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0 !important;
+  }
+}
