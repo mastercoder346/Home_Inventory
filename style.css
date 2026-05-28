@@ -392,15 +392,26 @@ textarea.form-control {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+    overflow: auto;
+  }
+
   .app-layout {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
   
   .sidebar {
-    width: 100%;
+    width: 100% !important;
     padding: 16px;
     border-right: none;
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   
   .sidebar-header {
@@ -411,6 +422,7 @@ textarea.form-control {
     flex-direction: row;
     gap: 12px;
     overflow-x: auto;
+    padding-bottom: 4px;
   }
   
   .nav-link {
@@ -418,12 +430,23 @@ textarea.form-control {
     padding: 8px 16px;
   }
   
+  .main-content {
+    height: auto;
+    overflow: visible;
+    flex-grow: 1;
+  }
+
   .topbar {
     padding: 16px;
+    position: relative;
+    backdrop-filter: none;
+    background: var(--bg);
   }
   
   .view-container {
     padding: 16px;
+    height: auto;
+    overflow: visible;
   }
   
   .form-row {
