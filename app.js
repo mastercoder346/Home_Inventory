@@ -20,6 +20,12 @@ if (items.length === 0) {
 }
 
 let currentView = 'inventory'; // 'inventory' or 'settings'
+let searchQuery = '';
+
+window.handleSearch = (e) => {
+  searchQuery = e.target.value;
+  renderApp();
+};
 
 // --- View Rendering ---
 
@@ -27,19 +33,35 @@ const renderApp = () => {
   const container = document.getElementById('view-container');
   const title = document.getElementById('page-title');
   const actions = document.getElementById('topbar-actions');
+  const searchContainer = document.getElementById('search-container');
 
   if (currentView === 'inventory') {
     title.innerText = 'Inventory';
+    searchContainer.style.display = 'block';
     actions.innerHTML = `<button class="btn btn-primary shadow-glow" onclick="openAddItemModal()">+ Add Item</button>`;
     container.innerHTML = renderInventoryView();
   } else if (currentView === 'settings') {
     title.innerText = 'Settings';
+    searchContainer.style.display = 'none';
     actions.innerHTML = ``;
     container.innerHTML = renderSettingsView();
   }
 };
 
 const renderInventoryView = () => {
+  const query = searchQuery.trim().toLowerCase();
+  const filteredItems = items.filter(i => {
+    if (!query) return true;
+    return (
+      i.name.toLowerCase().includes(query) ||
+      i.category.toLowerCase().includes(query) ||
+      i.location.toLowerCase().includes(query) ||
+      i.shelf.toLowerCase().includes(query) ||
+      i.bin.toLowerCase().includes(query) ||
+      (i.notes && i.notes.toLowerCase().includes(query))
+    );
+  });
+
   const total = items.length;
   const borrowed = items.filter(i => i.status === 'borrowed').length;
   
@@ -56,10 +78,15 @@ const renderInventoryView = () => {
     </div>
   `;
 
-  const itemsHTML = items.length === 0 ? `<p style="color: var(--text-muted);">No items found. Add one to get started!</p>` : `
+  const itemsHTML = filteredItems.length === 0 ? `<p style="color: var(--text-muted);">No items found. Try a different search query or add a new item!</p>` : `
     <div class="items-grid">
-      ${items.map(i => `
+      ${filteredItems.map(i => `
         <div class="item-card">
+          ${i.image ? `
+            <div class="item-image">
+              <img src="${i.image}" alt="${i.name}">
+            </div>
+          ` : ''}
           <div class="item-header">
             <span class="item-title">${i.name}</span>
             <span class="badge ${i.status}">${i.status}</span>
@@ -206,6 +233,7 @@ window.saveItemForm = (e) => {
     bin: form.bin.value,
     condition: form.condition.value,
     notes: form.notes.value,
+    image: form.image.value || '',
     status: editingId ? items.find(i => i.id === editingId).status : 'available'
   };
 
@@ -244,6 +272,55 @@ window.returnItem = (id) => {
   renderApp();
 };
 
+window.handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const previewDiv = document.querySelector('.image-preview');
+  previewDiv.innerHTML = `<span>Processing & compressing image...</span>`;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 600;
+      const MAX_HEIGHT = 600;
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to compressed jpeg text format
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+      
+      document.getElementById('item-image-value').value = compressedDataUrl;
+      previewDiv.innerHTML = `
+        <img src="${compressedDataUrl}" id="preview-img">
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+        <input type="hidden" name="image" id="item-image-value" value="${compressedDataUrl}">
+      `;
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
 const getModalHTML = (title, item = {}) => `
   <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
     <div class="modal">
@@ -252,6 +329,18 @@ const getModalHTML = (title, item = {}) => `
         <div class="form-group">
           <label>Item Name</label>
           <input type="text" name="name" class="form-control" required value="${item.name || ''}">
+        </div>
+
+        <div class="form-group">
+          <label>Item Photo (Converts to space-saving text)</label>
+          <div class="image-preview" onclick="document.getElementById('image-upload').click()">
+            ${item.image ? `<img src="${item.image}" id="preview-img">` : `
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <span>Click to upload / take picture</span>
+            `}
+          </div>
+          <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+          <input type="hidden" name="image" id="item-image-value" value="${item.image || ''}">
         </div>
         
         <div class="form-row">
