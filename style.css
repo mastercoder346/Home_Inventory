@@ -324,16 +324,23 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 1000;
   opacity: 0;
-  animation: fadeIn 0.2s forwards;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeIn { to { opacity: 1; } }
+
+@keyframes slideUpScale {
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
 
 .modal {
   background: var(--surface);
@@ -345,6 +352,9 @@ body {
   border: 1px solid var(--border);
   max-height: 90vh;
   overflow-y: auto;
+  opacity: 0;
+  transform: translateY(24px) scale(0.95);
+  animation: slideUpScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .modal h2 {
